@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import { motion, AnimatePresence } from "motion/react";
-import { getMessages, ContactMessage, deleteMessage, toggleContacted, getContactedCount, getVisitCount, incrementVisit } from "../lib/storage";
-import { MessageSquare, Users, TrendingUp, Trash2, ArrowLeft, LogOut, ExternalLink, CheckCheck, Phone, Mail, Clock, ChevronDown } from "lucide-react";
+import { getMessages, ContactMessage, deleteMessage, toggleContacted, bulkMarkContacted, bulkDelete, getContactedCount, getVisitCount, incrementVisit } from "../lib/storage";
+import { MessageSquare, Users, TrendingUp, Trash2, ArrowLeft, LogOut, ExternalLink, CheckCheck, Phone, Mail, Clock, ChevronDown, Search, X, CheckSquare, Square, Inbox } from "lucide-react";
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
@@ -14,6 +14,10 @@ export default function DashboardPage() {
   const [visits] = useState(getVisitCount);
   const [selected, setSelected] = useState<ContactMessage | null>(null);
   const [filter, setFilter] = useState<Filter>("all");
+  const [search, setSearch] = useState("");
+  const [selectMode, setSelectMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [sortAsc, setSortAsc] = useState(false);
 
   useEffect(() => {
     if (!sessionStorage.getItem("cloudmint_admin")) {
@@ -24,7 +28,10 @@ export default function DashboardPage() {
     setMessages(getMessages());
   }, [nav]);
 
-  const refresh = () => setMessages(getMessages());
+  const refresh = () => {
+    setMessages(getMessages());
+    setSelectedIds(new Set());
+  };
 
   const handleLogout = () => {
     sessionStorage.removeItem("cloudmint_admin");
@@ -45,16 +52,64 @@ export default function DashboardPage() {
     }
   };
 
-  const filtered = messages.filter(m => {
-    if (filter === "contacted") return m.contacted;
-    if (filter === "unread") return !m.contacted;
-    return true;
-  });
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === filtered.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(filtered.map(m => m.id)));
+    }
+  };
+
+  const handleBulkContacted = () => {
+    bulkMarkContacted(Array.from(selectedIds), true);
+    refresh();
+  };
+
+  const handleBulkUncontacted = () => {
+    bulkMarkContacted(Array.from(selectedIds), false);
+    refresh();
+  };
+
+  const handleBulkDelete = () => {
+    if (selectedIds.size === 0) return;
+    bulkDelete(Array.from(selectedIds));
+    if (selected && selectedIds.has(selected.id)) setSelected(null);
+    refresh();
+  };
+
+  const filtered = useMemo(() => {
+    let list = messages;
+    if (filter === "contacted") list = list.filter(m => m.contacted);
+    else if (filter === "unread") list = list.filter(m => !m.contacted);
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      list = list.filter(m =>
+        m.name.toLowerCase().includes(q) ||
+        m.email.toLowerCase().includes(q) ||
+        m.phone?.toLowerCase().includes(q) ||
+        m.projectType.toLowerCase().includes(q) ||
+        m.message.toLowerCase().includes(q)
+      );
+    }
+    return sortAsc ? [...list].reverse() : list;
+  }, [messages, filter, search, sortAsc]);
+
+  const contactedCount = useMemo(() => getContactedCount(), [messages]);
+  const pendingCount = messages.length - contactedCount;
 
   const stats = [
-    { label: "Total inquiries", value: messages.length, icon: MessageSquare, color: "#c8ff00", sub: `${messages.filter(m => !m.contacted).length} unread` },
-    { label: "Contacted", value: getContactedCount(), icon: CheckCheck, color: "#4ade80", sub: `${(messages.length ? Math.round(getContactedCount() / messages.length * 100) : 0)}% response rate` },
+    { label: "Total inquiries", value: messages.length, icon: Inbox, color: "#c8ff00", sub: `${pendingCount} unread` },
+    { label: "Contacted", value: contactedCount, icon: CheckCheck, color: "#4ade80", sub: `${messages.length ? Math.round(contactedCount / messages.length * 100) : 0}% response rate` },
     { label: "Site visits", value: visits, icon: Users, color: "#f0ece4", sub: "all time" },
+    { label: "Conversion", value: messages.length ? Math.round(contactedCount / messages.length * 100) + "%" : "0%", icon: TrendingUp, color: "#a78bfa", sub: `${contactedCount} contacted` },
   ];
 
   return (
@@ -64,7 +119,7 @@ export default function DashboardPage() {
         <div className="flex items-center gap-3">
           <img src="/logo.jpg" alt="Cloudmint" className="h-7 w-auto rounded-md" />
           <span className="text-sm font-semibold" style={{ color: "#f0ece4", fontFamily: "'Bricolage Grotesque', sans-serif" }}>Admin</span>
-          <span className="text-[10px] px-2 py-0.5 rounded-full ml-2" style={{ background: "rgba(200,255,0,0.1)", color: "#c8ff00", border: "1px solid rgba(200,255,0,0.2)" }}>v2</span>
+          <span className="text-[10px] px-2 py-0.5 rounded-full ml-2" style={{ background: "rgba(200,255,0,0.1)", color: "#c8ff00", border: "1px solid rgba(200,255,0,0.2)" }}>v3</span>
         </div>
         <div className="flex items-center gap-3">
           <a href="/" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg transition-all duration-200" style={{ color: "#6b6860", background: "rgba(240,236,228,0.04)", border: "1px solid rgba(240,236,228,0.06)" }}>
@@ -87,16 +142,16 @@ export default function DashboardPage() {
             <h1 className="text-lg font-bold" style={{ fontFamily: "'Bricolage Grotesque', sans-serif", color: "#f0ece4" }}>Dashboard</h1>
           </div>
           <div className="flex items-center gap-2">
-            {(messages.length - getContactedCount()) > 0 && (
+            {pendingCount > 0 && (
               <span className="text-xs px-2.5 py-1 rounded-full" style={{ background: "rgba(239,68,68,0.1)", color: "#ef4444", border: "1px solid rgba(239,68,68,0.2)" }}>
-                {messages.length - getContactedCount()} unread
+                {pendingCount} pending
               </span>
             )}
           </div>
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           {stats.map((stat, i) => (
             <motion.div
               key={stat.label}
@@ -118,25 +173,97 @@ export default function DashboardPage() {
           ))}
         </div>
 
-        {/* Filter tabs */}
-        <div className="flex items-center gap-1 mb-5">
-          {(["all", "unread", "contacted"] as Filter[]).map((f) => (
-            <button
-              key={f}
-              onClick={() => { setFilter(f); setSelected(null); }}
-              className="px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all duration-200"
+        {/* Search + filters */}
+        <div className="flex flex-wrap items-center gap-3 mb-5">
+          {/* Filter tabs */}
+          <div className="flex items-center gap-1">
+            {(["all", "unread", "contacted"] as Filter[]).map((f) => (
+              <button
+                key={f}
+                onClick={() => { setFilter(f); setSelected(null); }}
+                className="px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all duration-200"
+                style={{
+                  background: filter === f ? "#1c1c1a" : "transparent",
+                  color: filter === f ? "#f0ece4" : "#3a3a38",
+                  border: filter === f ? "1px solid rgba(240,236,228,0.1)" : "1px solid transparent",
+                }}
+              >
+                {f === "all" && `All (${messages.length})`}
+                {f === "unread" && `Pending (${pendingCount})`}
+                {f === "contacted" && `Contacted (${contactedCount})`}
+              </button>
+            ))}
+          </div>
+
+          {/* Search */}
+          <div className="relative flex-1 min-w-[200px] max-w-[320px]">
+            <Search size={12} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: "#3a3a38" }} />
+            <input
+              type="text"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Search messages..."
+              className="w-full text-xs px-8 py-1.5 rounded-lg transition-all duration-200"
               style={{
-                background: filter === f ? "#1c1c1a" : "transparent",
-                color: filter === f ? "#f0ece4" : "#3a3a38",
-                border: filter === f ? "1px solid rgba(240,236,228,0.1)" : "1px solid transparent",
+                background: "#141412",
+                border: "1px solid rgba(240,236,228,0.06)",
+                color: "#f0ece4",
               }}
+            />
+            {search && (
+              <button onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2">
+                <X size={10} style={{ color: "#3a3a38" }} />
+              </button>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2">
+            {/* Sort toggle */}
+            <button
+              onClick={() => setSortAsc(!sortAsc)}
+              className="text-xs px-2.5 py-1.5 rounded-lg transition-all duration-200"
+              style={{ color: sortAsc ? "#f0ece4" : "#3a3a38", border: "1px solid rgba(240,236,228,0.06)", background: sortAsc ? "#1c1c1a" : "transparent" }}
+              title={sortAsc ? "Oldest first" : "Newest first"}
             >
-              {f === "all" && `All (${messages.length})`}
-              {f === "unread" && `Unread (${messages.filter(m => !m.contacted).length})`}
-              {f === "contacted" && `Contacted (${getContactedCount()})`}
+              <ChevronDown size={11} className={`transition-transform ${sortAsc ? "rotate-180" : ""}`} />
             </button>
-          ))}
+
+            {/* Select mode toggle */}
+            <button
+              onClick={() => { setSelectMode(!selectMode); setSelectedIds(new Set()); }}
+              className="text-xs px-2.5 py-1.5 rounded-lg transition-all duration-200"
+              style={{ color: selectMode ? "#f0ece4" : "#3a3a38", border: "1px solid rgba(240,236,228,0.06)", background: selectMode ? "#1c1c1a" : "transparent" }}
+            >
+              {selectMode ? <Square size={11} /> : <CheckSquare size={11} />}
+            </button>
+          </div>
         </div>
+
+        {/* Bulk actions bar */}
+        <AnimatePresence>
+          {selectMode && selectedIds.size > 0 && (
+            <motion.div
+              className="flex items-center gap-2 mb-4 p-3 rounded-xl"
+              style={{ background: "#1c1c1a", border: "1px solid rgba(200,255,0,0.1)" }}
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.2, ease }}
+            >
+              <span className="text-xs font-medium" style={{ color: "#6b6860" }}>{selectedIds.size} selected</span>
+              <div className="h-4 w-px" style={{ background: "rgba(240,236,228,0.06)" }} />
+              <button onClick={handleBulkContacted} className="text-xs px-2.5 py-1 rounded-lg transition-all duration-200" style={{ background: "rgba(74,222,128,0.1)", color: "#4ade80", border: "1px solid rgba(74,222,128,0.2)" }}>
+                <CheckCheck size={10} className="inline mr-1" />Mark contacted
+              </button>
+              <button onClick={handleBulkUncontacted} className="text-xs px-2.5 py-1 rounded-lg transition-all duration-200" style={{ background: "rgba(200,255,0,0.1)", color: "#c8ff00", border: "1px solid rgba(200,255,0,0.2)" }}>
+                <Clock size={10} className="inline mr-1" />Mark pending
+              </button>
+              <button onClick={handleBulkDelete} className="text-xs px-2.5 py-1 rounded-lg transition-all duration-200 hover:bg-red-500/10 hover:text-red-400" style={{ color: "#6b6860", border: "1px solid rgba(240,236,228,0.06)" }}>
+                <Trash2 size={10} className="inline mr-1" />Delete
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Messages */}
         <div className="grid md:grid-cols-[1fr_360px] gap-6">
@@ -145,39 +272,64 @@ export default function DashboardPage() {
             {filtered.length === 0 ? (
               <div className="rounded-2xl p-10 text-center" style={{ background: "#141412", border: "1px solid rgba(240,236,228,0.06)" }}>
                 <MessageSquare size={28} style={{ color: "#3a3a38" }} className="mx-auto mb-3" />
-                <p className="text-sm" style={{ color: "#6b6860" }}>No {filter !== "all" ? filter : ""} messages</p>
+                <p className="text-sm" style={{ color: "#6b6860" }}>
+                  {search ? "No messages match your search" : `No ${filter !== "all" ? filter : ""} messages`}
+                </p>
               </div>
             ) : (
               <div className="flex flex-col gap-2">
+                {/* Select all checkbox when in select mode */}
+                {selectMode && (
+                  <button
+                    onClick={toggleSelectAll}
+                    className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs transition-all"
+                    style={{ color: "#6b6860", border: "1px solid rgba(240,236,228,0.04)" }}
+                  >
+                    {selectedIds.size === filtered.length ? <CheckCheck size={12} style={{ color: "#c8ff00" }} /> : <Square size={12} />}
+                    {selectedIds.size === filtered.length ? "Deselect all" : `Select all (${filtered.length})`}
+                  </button>
+                )}
+
                 <AnimatePresence mode="popLayout">
                   {filtered.map((msg, i) => (
                     <motion.button
                       key={msg.id}
                       layout
-                      onClick={() => setSelected(msg)}
+                      onClick={() => selectMode ? toggleSelect(msg.id) : setSelected(msg)}
                       className="w-full text-left rounded-xl p-4 transition-all duration-200"
                       style={{
-                        background: selected?.id === msg.id ? "#1c1c1a" : "#141412",
-                        border: selected?.id === msg.id ? "1px solid rgba(200,255,0,0.2)" : "1px solid rgba(240,236,228,0.06)",
-                        opacity: msg.contacted ? 0.6 : 1,
+                        background: selected?.id === msg.id ? "#1c1c1a" : selectMode && selectedIds.has(msg.id) ? "rgba(200,255,0,0.04)" : "#141412",
+                        border: selected?.id === msg.id
+                          ? "1px solid rgba(200,255,0,0.2)"
+                          : selectMode && selectedIds.has(msg.id)
+                            ? "1px solid rgba(200,255,0,0.15)"
+                            : "1px solid rgba(240,236,228,0.06)",
+                        opacity: msg.contacted && !selectMode ? 0.6 : 1,
                       }}
                       initial={{ opacity: 0, y: 8 }}
-                      animate={{ opacity: msg.contacted ? 0.6 : 1, y: 0 }}
+                      animate={{ opacity: msg.contacted && !selectMode ? 0.6 : 1, y: 0 }}
                       exit={{ opacity: 0, x: -20 }}
                       transition={{ duration: 0.25, ease }}
                     >
                       <div className="flex items-center justify-between mb-1">
                         <div className="flex items-center gap-2">
-                          {!msg.contacted && <span className="w-2 h-2 rounded-full" style={{ background: "#c8ff00" }} />}
-                          <span className="text-sm font-medium" style={{ color: msg.contacted ? "#6b6860" : "#f0ece4" }}>{msg.name}</span>
+                          {selectMode ? (
+                            selectedIds.has(msg.id) ? <CheckCheck size={12} style={{ color: "#c8ff00" }} /> : <Square size={12} style={{ color: "#3a3a38" }} />
+                          ) : (
+                            !msg.contacted && <span className="w-2 h-2 rounded-full" style={{ background: "#c8ff00" }} />
+                          )}
+                          <span className="text-sm font-medium" style={{ color: msg.contacted && !selectMode ? "#6b6860" : "#f0ece4" }}>{msg.name}</span>
+                          {msg.contacted && (
+                            <span className="text-[9px] px-1.5 py-0.5 rounded-full" style={{ background: "rgba(74,222,128,0.1)", color: "#4ade80" }}>contacted</span>
+                          )}
                         </div>
                         <span className="text-[10px]" style={{ color: "#3a3a38" }}>
                           {new Date(msg.createdAt).toLocaleDateString()}
                         </span>
                       </div>
-                      <div className="flex items-center gap-2 text-xs" style={{ color: "#6b6860" }}>
-                        <Mail size={10} />
-                        <span className="truncate">{msg.email}</span>
+                      <div className="flex items-center gap-3 text-xs" style={{ color: "#6b6860" }}>
+                        <span className="flex items-center gap-1"><Mail size={10} /><span className="truncate max-w-[140px]">{msg.email}</span></span>
+                        {msg.phone && <span className="flex items-center gap-1"><Phone size={10} /><span className="truncate max-w-[100px]">{msg.phone}</span></span>}
                       </div>
                       <div className="flex items-center gap-2 mt-1" style={{ color: "#3a3a38" }}>
                         <span className="text-[10px]">{msg.projectType}</span>
@@ -217,7 +369,7 @@ export default function DashboardPage() {
                         border: `1px solid ${selected.contacted ? "rgba(74,222,128,0.2)" : "rgba(200,255,0,0.2)"}`,
                       }}
                     >
-                      {selected.contacted ? <CheckCheck size={10} /> : <CheckCheck size={10} />}
+                      <CheckCheck size={10} />
                       {selected.contacted ? "Mark pending" : "Mark contacted"}
                     </button>
                     <button
@@ -231,8 +383,13 @@ export default function DashboardPage() {
                 </div>
 
                 <div className="space-y-4 text-sm">
-                  <div className="flex items-center gap-2" style={{ color: "#f0ece4" }}>
-                    <span className="font-medium">{selected.name}</span>
+                  <div className="flex items-center justify-between">
+                    <span className="font-medium" style={{ color: "#f0ece4" }}>{selected.name}</span>
+                    {selected.contacted && (
+                      <span className="text-[9px] px-1.5 py-0.5 rounded-full" style={{ background: "rgba(74,222,128,0.1)", color: "#4ade80", border: "1px solid rgba(74,222,128,0.2)" }}>
+                        contacted
+                      </span>
+                    )}
                   </div>
                   <div className="flex items-center gap-2 text-xs" style={{ color: "#6b6860" }}>
                     <Mail size={11} /> {selected.email}

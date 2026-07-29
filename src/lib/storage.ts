@@ -38,6 +38,18 @@ export function toggleContacted(id: string): void {
   localStorage.setItem(MESSAGES_KEY, JSON.stringify(messages));
 }
 
+export function bulkMarkContacted(ids: string[], contacted: boolean): void {
+  const set = new Set(ids);
+  const messages = getMessages().map(m => set.has(m.id) ? { ...m, contacted } : m);
+  localStorage.setItem(MESSAGES_KEY, JSON.stringify(messages));
+}
+
+export function bulkDelete(ids: string[]): void {
+  const set = new Set(ids);
+  const messages = getMessages().filter(m => !set.has(m.id));
+  localStorage.setItem(MESSAGES_KEY, JSON.stringify(messages));
+}
+
 export function getContactedCount(): number {
   return getMessages().filter(m => m.contacted).length;
 }
