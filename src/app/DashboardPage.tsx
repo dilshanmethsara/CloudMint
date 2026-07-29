@@ -141,6 +141,7 @@ export default function DashboardPage() {
                       </span>
                     </div>
                     <p className="text-xs truncate" style={{ color: "#6b6860" }}>{msg.email}</p>
+                    {msg.phone && <p className="text-xs truncate" style={{ color: "#3a3a38" }}>{msg.phone}</p>}
                     <p className="text-xs mt-1 truncate" style={{ color: "#3a3a38" }}>{msg.projectType} · {msg.budget}</p>
                   </motion.button>
                 ))}
@@ -175,6 +176,10 @@ export default function DashboardPage() {
                     <p className="text-[10px] font-medium tracking-wider uppercase mb-1" style={{ color: "#3a3a38" }}>Email</p>
                     <p className="text-sm" style={{ color: "#f0ece4" }}>{selected.email}</p>
                   </div>
+                  {selected.phone && <div>
+                    <p className="text-[10px] font-medium tracking-wider uppercase mb-1" style={{ color: "#3a3a38" }}>Phone</p>
+                    <p className="text-sm" style={{ color: "#f0ece4" }}>{selected.phone}</p>
+                  </div>}
                   <div>
                     <p className="text-[10px] font-medium tracking-wider uppercase mb-1" style={{ color: "#3a3a38" }}>Project type</p>
                     <p className="text-sm" style={{ color: "#f0ece4" }}>{selected.projectType}</p>

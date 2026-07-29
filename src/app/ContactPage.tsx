@@ -24,6 +24,7 @@ export default function ContactPage() {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
+    phone: "",
     projectType: "",
     budget: "",
     message: "",
@@ -45,6 +46,7 @@ export default function ContactPage() {
     if (!formData.name.trim()) newErrors.name = "Name is required";
     if (!formData.email.trim()) newErrors.email = "Email is required";
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) newErrors.email = "Invalid email format";
+    if (formData.phone.trim() && !/^[\d\s\-()+.]{7,}$/.test(formData.phone.trim())) newErrors.phone = "Invalid phone number";
     if (!formData.projectType) newErrors.projectType = "Please select a project type";
     if (!formData.budget) newErrors.budget = "Please select a budget range";
     if (!formData.message.trim()) newErrors.message = "Message is required";
@@ -58,13 +60,14 @@ export default function ContactPage() {
     addMessage({
       name: formData.name.trim(),
       email: formData.email.trim(),
+      phone: formData.phone.trim(),
       projectType: formData.projectType,
       budget: formData.budget,
       message: formData.message.trim(),
     });
 
     setSubmitted(true);
-    setFormData({ name: "", email: "", projectType: "", budget: "", message: "" });
+    setFormData({ name: "", email: "", phone: "", projectType: "", budget: "", message: "" });
   };
 
   const ease = [0.22, 1, 0.36, 1] as const;
@@ -265,6 +268,25 @@ export default function ContactPage() {
                       placeholder="jane@company.com"
                     />
                     {errors.email && <p className="text-xs mt-1.5" style={{ color: "#ef4444" }}>{errors.email}</p>}
+                  </div>
+                  <div>
+                    <label htmlFor="phone" className="text-xs font-medium tracking-wide uppercase mb-2 block" style={{ color: "#6b6860" }}>Phone number</label>
+                    <input
+                      type="tel"
+                      id="phone"
+                      name="phone"
+                      value={formData.phone}
+                      onChange={handleChange}
+                      className="w-full px-4 py-3.5 rounded-lg text-base transition-all duration-200"
+                      style={{
+                        background: "#141412",
+                        border: errors.phone ? "1px solid #ef4444" : "1px solid rgba(240,236,228,0.1)",
+                        color: "#f0ece4",
+                        fontFamily: "'DM Sans', sans-serif",
+                      }}
+                      placeholder="+1 (555) 123-4567"
+                    />
+                    {errors.phone && <p className="text-xs mt-1.5" style={{ color: "#ef4444" }}>{errors.phone}</p>}
                   </div>
                 </div>
 
