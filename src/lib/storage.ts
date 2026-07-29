@@ -6,6 +6,7 @@ export interface ContactMessage {
   projectType: string;
   budget: string;
   message: string;
+  contacted: boolean;
   createdAt: string;
 }
 
@@ -21,7 +22,7 @@ export function getMessages(): ContactMessage[] {
 
 export function addMessage(msg: Omit<ContactMessage, "id" | "createdAt">): ContactMessage {
   const messages = getMessages();
-  const newMsg: ContactMessage = { ...msg, id: crypto.randomUUID(), createdAt: new Date().toISOString() };
+  const newMsg: ContactMessage = { ...msg, contacted: false, id: crypto.randomUUID(), createdAt: new Date().toISOString() };
   messages.unshift(newMsg);
   localStorage.setItem(MESSAGES_KEY, JSON.stringify(messages));
   return newMsg;
@@ -30,6 +31,15 @@ export function addMessage(msg: Omit<ContactMessage, "id" | "createdAt">): Conta
 export function deleteMessage(id: string): void {
   const messages = getMessages().filter(m => m.id !== id);
   localStorage.setItem(MESSAGES_KEY, JSON.stringify(messages));
+}
+
+export function toggleContacted(id: string): void {
+  const messages = getMessages().map(m => m.id === id ? { ...m, contacted: !m.contacted } : m);
+  localStorage.setItem(MESSAGES_KEY, JSON.stringify(messages));
+}
+
+export function getContactedCount(): number {
+  return getMessages().filter(m => m.contacted).length;
 }
 
 export function getVisitCount(): number {
