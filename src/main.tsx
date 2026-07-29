@@ -8,6 +8,8 @@ import WorkPage from "./app/WorkPage.tsx";
 import AboutPage from "./app/AboutPage.tsx";
 import PrivacyPage from "./app/PrivacyPage.tsx";
 import TermsPage from "./app/TermsPage.tsx";
+import LoginPage from "./app/LoginPage.tsx";
+import DashboardPage from "./app/DashboardPage.tsx";
 import "./styles/index.css";
 
 createRoot(document.getElementById("root")!).render(
@@ -22,6 +24,8 @@ createRoot(document.getElementById("root")!).render(
         <Route path="/privacy" element={<PrivacyPage />} />
         <Route path="/terms" element={<TermsPage />} />
       </Route>
+      <Route path="/admin" element={<LoginPage />} />
+      <Route path="/admin/dashboard" element={<DashboardPage />} />
     </Routes>
   </BrowserRouter>
 );

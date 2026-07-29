@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router";
 import { motion, useInView } from "motion/react";
 import { ArrowUpRight, Mail, MessageSquare, MapPin, Linkedin, Twitter, Github } from "lucide-react";
+import { addMessage } from "../lib/storage";
 
 export default function ContactPage() {
   const headerRef = useRef<HTMLDivElement>(null);
@@ -53,6 +54,14 @@ export default function ContactPage() {
       setErrors(newErrors);
       return;
     }
+
+    addMessage({
+      name: formData.name.trim(),
+      email: formData.email.trim(),
+      projectType: formData.projectType,
+      budget: formData.budget,
+      message: formData.message.trim(),
+    });
 
     setSubmitted(true);
     setFormData({ name: "", email: "", projectType: "", budget: "", message: "" });
