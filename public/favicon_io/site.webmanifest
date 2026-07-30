@@ -1,0 +1,21 @@
+{
+  "name": "CloudMint",
+  "short_name": "CloudMint",
+  "description": "Professional Web Development & Digital Solutions",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0a09",
+  "theme_color": "#c8ff00",
+  "icons": [
+    {
+      "src": "/favicon_io/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/favicon_io/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
