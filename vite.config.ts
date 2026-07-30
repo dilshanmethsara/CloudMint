@@ -21,6 +21,28 @@ export default defineConfig({
     figmaAssetResolver(),
     react(),
     tailwindcss(),
+    {
+      name: 'serve-static-files',
+      configureServer(server) {
+        const staticPaths = ['/sitemap.xml', '/robots.txt', '/logo.jpg']
+        return () => {
+          server.middlewares.use((req, res, next) => {
+            const url = req.url ?? ''
+            if (
+              staticPaths.some(p => url === p) ||
+              url.startsWith('/favicon_io/')
+            ) {
+              if (url.endsWith('.webmanifest')) {
+                res.setHeader('Content-Type', 'application/manifest+json')
+              }
+              next()
+              return
+            }
+            next()
+          })
+        }
+      },
+    },
   ],
   resolve: {
     alias: {

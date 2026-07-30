@@ -138,7 +138,7 @@ function ProjectCard({
       {/* Image container */}
       <div
         className="relative overflow-hidden"
-        style={{ aspectRatio: featured ? "16/7" : "4/3" }}
+        style={{ aspectRatio: featured ? "21/9" : "4/3" }}
       >
         {/* Background color while image loads */}
         <div className="absolute inset-0" style={{ background: "#1a1a18" }} />
@@ -226,7 +226,7 @@ function ProjectCard({
             className="font-extrabold leading-tight tracking-tight"
             style={{
               fontFamily: "'Bricolage Grotesque', sans-serif",
-              fontSize: featured ? "clamp(1.6rem, 3.5vw, 2.4rem)" : "clamp(1.2rem, 2.5vw, 1.5rem)",
+              fontSize: featured ? "clamp(1.3rem, 2.8vw, 1.8rem)" : "clamp(1rem, 2vw, 1.25rem)",
               color: "#f0ece4",
               letterSpacing: "-0.025em",
             }}
@@ -324,11 +324,11 @@ function PortfolioSection() {
 
   return (
     <section
-      className="px-8 md:px-12 pt-24 md:pt-32 pb-24"
+      className="px-8 md:px-12 pt-16 md:pt-20 pb-16"
       style={{ borderTop: "1px solid rgba(240,236,228,0.08)" }}
     >
       {/* Header */}
-      <div ref={headerRef} className="grid md:grid-cols-2 gap-8 md:gap-16 mb-14 md:mb-16">
+      <div ref={headerRef} className="grid md:grid-cols-2 gap-8 md:gap-16 mb-10 md:mb-12">
         <div>
           <motion.p
             className="text-xs font-medium tracking-[0.2em] uppercase mb-7 flex items-center gap-3"
