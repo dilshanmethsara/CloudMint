@@ -57,7 +57,7 @@ const PROJECTS = [
     desc: "A premium game top-up platform supporting multiple titles — Mobile Legends, PUBG, Free Fire, Genshin Impact, and more. Instant delivery, auto-reconciliation, and a seamless mobile-first checkout experience.",
     tech: ["Next.js", "Xendit", "Firebase", "Midtrans"],
     url: "https://hasagoldstore.com",
-    img: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=1600&h=900&fit=crop&auto=format",
+    img: "/hasa-gold-store.png",
     featured: true,
     year: "2025",
   },
@@ -420,7 +420,7 @@ function PortfolioSection() {
           These are five of 140+ projects. Each one has a full case study available on request.
         </p>
         <a
-          href="#"
+          href="/work"
           className="group flex items-center gap-2 text-sm font-semibold transition-all duration-200"
           style={{ color: "#c8ff00", fontFamily: "'Bricolage Grotesque', sans-serif" }}
         >
@@ -1004,7 +1004,7 @@ export default function App() {
               <ArrowUpRight size={16} className="transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
             </a>
             <a
-              href="#"
+              href="/work"
               className="group flex items-center justify-between px-5 py-4 rounded-xl font-medium text-sm transition-all duration-200"
               style={{ background: "#1c1c1a", color: "#f0ece4", fontFamily: "'Bricolage Grotesque', sans-serif" }}
             >

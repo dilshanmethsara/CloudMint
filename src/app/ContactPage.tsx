@@ -373,7 +373,7 @@ export default function ContactPage() {
                 </button>
 
                 <p className="text-xs text-center" style={{ color: "#3a3a38" }}>
-                  By submitting, you agree to our <a href="#" className="underline hover:text-accent" style={{ color: "#6b6860" }}>Privacy Policy</a>. No spam, ever.
+                  By submitting, you agree to our <a href="/privacy" className="underline hover:text-accent" style={{ color: "#6b6860" }}>Privacy Policy</a>. No spam, ever.
                 </p>
               </form>
             </motion.div>

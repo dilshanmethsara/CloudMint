@@ -12,7 +12,7 @@ const PROJECTS = [
     desc: "A premium game top-up platform supporting multiple titles — Mobile Legends, PUBG, Free Fire, Genshin Impact, and more. Instant delivery, auto-reconciliation, and a seamless mobile-first checkout experience.",
     tech: ["Next.js", "Xendit", "Firebase", "Midtrans"],
     url: "https://hasagoldstore.com",
-    img: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=1600&h=900&fit=crop&auto=format",
+    img: "/hasa-gold-store.png",
     featured: true,
     year: "2025",
   },
