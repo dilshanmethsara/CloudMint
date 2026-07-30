@@ -1,9 +1,5 @@
 {
   "rewrites": [
-    { "source": "/favicon_io/(.*)", "destination": "/favicon_io/$1" },
-    { "source": "/sitemap.xml", "destination": "/sitemap.xml" },
-    { "source": "/robots.txt", "destination": "/robots.txt" },
-    { "source": "/logo.jpg", "destination": "/logo.jpg" },
-    { "source": "/(.*)", "destination": "/index.html" }
+    { "source": "/((?!.*\\.[a-zA-Z0-9]+).*)", "destination": "/index.html" }
   ]
 }
